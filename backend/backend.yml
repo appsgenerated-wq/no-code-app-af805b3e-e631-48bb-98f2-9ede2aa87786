@@ -1,0 +1,68 @@
+name: FoodieFinds
+description: A food app for discovering and sharing recipes.
+
+entities:
+  User:
+    authenticable: true
+    properties:
+      - name
+      - { name: email, type: email }
+      - { name: role, type: choice, options: { values: [chef, user, admin], default: user } }
+    policies:
+      create:
+        - access: admin
+      read:
+        - { access: restricted, allow: User, condition: self }
+      update:
+        - { access: restricted, allow: User, condition: self }
+      delete:
+        - access: admin
+      signup:
+        - access: public
+
+  Recipe:
+    properties:
+      - { name: title, type: string, options: { required: true } }
+      - { name: description, type: text }
+      - { name: ingredients, type: text, options: { required: true } }
+      - { name: instructions, type: text, options: { required: true } }
+      - { name: prepTime, type: number, options: { label: 'Prep Time (minutes)' } }
+      - { name: cuisine, type: string }
+      - { name: photo, type: image, options: { sizes: { thumbnail: { width: 400, height: 300 } } } }
+    belongsTo:
+      - { name: author, entity: User }
+    policies:
+      create:
+        - { access: restricted, allow: User }
+      read:
+        - access: public
+      update:
+        - { access: restricted, allow: User, condition: self }
+      delete:
+        - { access: restricted, allow: User, condition: self }
+
+  Review:
+    properties:
+      - { name: rating, type: number, options: { min: 1, max: 5 } }
+      - { name: comment, type: text }
+    belongsTo:
+      - { name: author, entity: User }
+      - { name: recipe, entity: Recipe }
+    policies:
+      create:
+        - { access: restricted, allow: User }
+      read:
+        - access: public
+      update:
+        - { access: restricted, allow: User, condition: self }
+      delete:
+        - { access: restricted, allow: User, condition: self }
+
+
+# Health check endpoint for connection testing
+endpoints:
+  healthCheck:
+    path: /api/health
+    method: GET
+    handler: healthCheck
+    policies: []  # Public access for health checks
